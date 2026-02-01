@@ -1,25 +1,24 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-import os
+from config.settings import settings
 
-# Using SQLite
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./tasks.db")
-
-# Create engine with proper SQLite settings
-if "sqlite" in DATABASE_URL:
+# Create database engine
+if "sqlite" in settings.DATABASE_URL:
+    # Use sync SQLite without aiosqlite for startup
     engine = create_engine(
-        DATABASE_URL,
-        echo=False,
+        settings.DATABASE_URL.replace("sqlite+aiosqlite", "sqlite"),
+        echo=settings.DEBUG,
         connect_args={"check_same_thread": False}
     )
 else:
-    engine = create_engine(DATABASE_URL, echo=False)
+    engine = create_engine(settings.DATABASE_URL, echo=settings.DEBUG)
 
 # Create SessionLocal
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base class for models
 Base = declarative_base()
+
 
 def get_db():
     """Dependency to get database session"""
